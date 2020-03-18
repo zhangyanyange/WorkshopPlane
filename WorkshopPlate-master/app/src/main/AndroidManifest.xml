@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="project.mvp.com.socket">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application
+        android:name=".application.MyApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="嘉琪车间"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".WareActivity"></activity>
+        <activity android:name=".NonscanningActivity" />
+        <activity android:name=".SearchLabelDetailActivity" />
+        <activity android:name=".LabelDetailActivity" />
+        <activity android:name=".LabelPathActivity" />
+        <activity android:name=".ReStockingActivity" />
+        <activity
+            android:name=".MainActivity"
+            android:label="嘉琪车间"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ConfigureActivity"
+            android:label="配置页" />
+        <activity
+            android:name=".ScanningActivity"
+            android:label="扫描枪" />
+        <activity
+            android:name=".ProductTaskActivity"
+            android:label="生产任务单" />
+        <activity
+            android:name=".PackingActivity"
+            android:label="包装" />
+        <activity
+            android:name=".SearchActivity"
+            android:label="搜索生产任务单" />
+        <activity android:name=".PreservationActivity" />
+        <activity android:name=".ViewConfiguraActivity" />
+        <activity android:name=".StartProductTaskActivity" />
+        <activity android:name=".WarehouseActivity" />
+        <activity android:name=".WorkShopActivity" /> <!-- Android 7.0 照片、APK下载保存路径 -->
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="project.mvp.com.socket.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
+        <activity android:name=".AddUnitActivity" />
+    </application>
+
+</manifest>

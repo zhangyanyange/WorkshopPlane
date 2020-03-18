@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/product_item"
+    android:layout_height="70dp"
+    android:layout_width="match_parent"
+    android:orientation="horizontal"
+    >
+
+    <LinearLayout
+        android:id="@+id/product_info"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="5dp"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/product_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:text="#生产任务编号"
+            android:textColor="#5E5D5D"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/product_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#生产任务名称"
+            android:textColor="#000000"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/add_packing"
+        android:layout_width="60dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="-100dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="10dp"
+        android:background="#FFFFFF"
+        android:text="包装"
+        android:textColor="#0A0005" />
+
+    <ImageView
+        android:layout_width="25dp"
+        android:layout_height="match_parent"
+        android:contentDescription="nothing"
+        android:src="@drawable/message_normal" />
+</LinearLayout>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/tb_main"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/back"
+            app:title="嘉琪车间"
+            app:titleTextColor="#fff"
+            android:background="?attr/colorPrimary"/>
+        <LinearLayout
+            android:id="@+id/ll_search"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            >
+
+            <EditText
+                android:id="@+id/tv_hint"
+                android:layout_weight="8"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp"
+                android:background="@drawable/content_bg"
+                android:hint="根据单号查询生产任务单"
+                android:padding="4dp"
+                android:singleLine="true"
+                android:textColor="#000"
+                android:textColorHint="#A6A6A6"
+                android:textSize="24sp"
+                />
+
+            <TextView
+                android:id="@+id/tv_confim"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:text="确认"
+                android:layout_marginLeft="6dp"
+                android:gravity="center"
+                android:textColor="#418DE2"
+                />
+        </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/pulltoRefresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </android.support.v7.widget.RecyclerView>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/loadView"
+        android:orientation="vertical"
+        android:visibility="gone"
+        >
+        <ProgressBar
+            android:layout_height="30dp"
+            android:layout_width="30dp"
+            android:indeterminateDuration="900"
+            android:layout_marginBottom="15dp"
+            style="@style/style_progressbar"
+            android:layout_centerInParent="true"
+            android:id="@+id/p"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#666"
+            android:text="加载中..."
+            android:id="@+id/textView"
+            android:layout_below="@+id/p"
+            android:textSize="30sp"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
+</RelativeLayout>
