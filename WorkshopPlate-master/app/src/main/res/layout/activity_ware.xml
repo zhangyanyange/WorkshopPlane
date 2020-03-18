@@ -19,4 +19,31 @@
         android:text="打印出库码并入库"
         />
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/loadView"
+        android:orientation="vertical"
+        android:visibility="gone"
+        >
+        <ProgressBar
+            android:layout_height="30dp"
+            android:layout_width="30dp"
+            android:indeterminateDuration="900"
+            android:layout_marginBottom="15dp"
+            style="@style/style_progressbar"
+            android:layout_centerInParent="true"
+            android:id="@+id/p"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#666"
+            android:text="入库中..."
+            android:id="@+id/textView"
+            android:layout_below="@+id/p"
+            android:textSize="30sp"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
+
 </RelativeLayout>
