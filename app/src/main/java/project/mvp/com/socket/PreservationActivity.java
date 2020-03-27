@@ -145,7 +145,7 @@ public class PreservationActivity extends AppCompatActivity {
         configure.setCompanyId(companyId);
         configure.setFworkShopId(workshopId);
         Date date=new Date();//此时date为当前的时间
-        SimpleDateFormat dateFormat=new SimpleDateFormat("yyyyMMdd");
+        SimpleDateFormat dateFormat=new SimpleDateFormat("yyMMdd");
         String productNumber= "GP"+dateFormat.format(date)+"A";
         batchNumber.setText(productNumber);
         configure.setBatchNo(productNumber);
@@ -202,6 +202,7 @@ public class PreservationActivity extends AppCompatActivity {
 
         @Override
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+            year=Integer.parseInt(String.valueOf(year).substring(2));
             mYear = year;
             mMonth = monthOfYear;
             mDay = dayOfMonth;

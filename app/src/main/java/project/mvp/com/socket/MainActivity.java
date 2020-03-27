@@ -213,8 +213,16 @@ public class MainActivity extends AppCompatActivity {
         request.setTitle("嘉琪车间");
         request.setDescription("优化用户体验");
         //sdcard的目录下的download文件夹，必须设置
+
         File file =
                 new File(Environment.getExternalStorageDirectory(), "jiaqi.apk");
+        if(file.exists()){
+            System.out.println(file.length());
+            if(file.length()>0){
+                file.delete();
+                file=new File(Environment.getExternalStorageDirectory(), "jiaqi.apk");
+            }
+        }
         request.setDestinationUri(Uri.fromFile(file));
         //request.setDestinationInExternalFilesDir(),也可以自己制定下载路径
 

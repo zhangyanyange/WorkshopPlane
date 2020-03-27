@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -68,8 +69,6 @@ public class WareActivity extends AppCompatActivity {
 
                     @Override
                     public void onResponse(String response) {
-                        System.out.println(response);
-
                         unit = gson.fromJson(response, PrintUnit.class);
                     }
                 });
@@ -113,77 +112,100 @@ public class WareActivity extends AppCompatActivity {
                     int magR = Remaining / RemainingMag;
                     int SmallestUnit = Remaining % RemainingMag;
                     WarePrint.PackageInfoBean packageInfoBean2 = null;
-                    WarePrint.PackageInfoBean infoBean = ScanTailBox(packageInfoBean2, magR);
+                    if(SmallestUnit>0){
+                        mag=mag+1;
+                    }
+                    //尾箱
+                    WarePrint.PackageInfoBean infoBean = ScanTailBox(packageInfoBean2, magR,Remaining,SmallestUnit,mag);
+                    //生成类似尾盒的数据
+                    WarePrint.PackageInfoBean packageInfoBean = printSmallUnit(mag, magR, unitsBean, SmallestUnit);
+                    if(infoBean.getChild()==null){
+                        ArrayList< WarePrint.PackageInfoBean> arrayList=new ArrayList<>();
+                        arrayList.add(packageInfoBean);
+                        infoBean.setChild(arrayList);
+                    }else{
+                        infoBean.getChild().add(packageInfoBean);
+                    }
+
 
                     WarePrint.PackageInfoBean packageInfoBean3 = null;
                     WarePrint.PackageInfoBean infoBean3 = TailBox(packageInfoBean3, magR);
-                    System.out.println(gson.toJson(infoBean3));
                     list.add(infoBean);
 
                     wareHousing.add(infoBean3);
                     //生成剩余最小单位包装的个数
-                  ArrayList<WarePrint.PackageInfoBean> packageInfoBeans = smallUnit(unitsBean, SmallestUnit);
+                    WarePrint.PackageInfoBean packageInfoBeans = smallUnit(mag, magR, unitsBean, SmallestUnit);
 
                     if(infoBean3.getChild()!=null){
-                        infoBean3.getChild().addAll(packageInfoBeans);
+                        infoBean3.getChild().add(packageInfoBeans);
                     }else{
-                        infoBean3.setChild(packageInfoBeans);
+                        ArrayList< WarePrint.PackageInfoBean> arrayList=new ArrayList<>();
+                        arrayList.add(packageInfoBeans);
+                        infoBean3.setChild(arrayList);
                     }
                 }
                 WarehousingBean bean=new WarehousingBean();
                 bean.setPackages(wareHousing);
                 bean.setInStoreNumber(number);
                 bean.setBrenchId(productID);
-
+                //扫码标签
                 String x = new Gson().toJson(list);
+                //入库标签
                 wareHouse = new Gson().toJson(bean);
 
+                FileUtils.writeFile(wareHouse,FileUtils.getExternalStoragePath(),true);
+                System.out.println(FileUtils.getExternalStoragePath());
                 //打印条码
-                OkHttpUtils.postString()
-                        .url(MyApplication.baseUrl+"api/Print")
-                        .content(x)
-                        .mediaType(MediaType.parse("application/json; charset=utf-8"))
-                        .build()
-                        .execute(new StringCallback() {
-                            @Override
-                            public void onError(Call call, Exception e) {
-                                ShowToastTime.showTextToast(e.toString());
-                                loadView.setVisibility(View.GONE);
-                            }
-
-                            @Override
-                            public void onResponse(String response) {
-                                System.out.println(response);
-                                ConfigureOptions options = gson.fromJson(response, ConfigureOptions.class);
-
-                                if(options.getCode()==200){
-                                   //入库
-                                    OkHttpUtils.postString()
-                                            .url(MyApplication.baseUrl+"api/Production/Store")
-                                            .content(wareHouse)
-                                            .mediaType(MediaType.parse("application/json; charset=utf-8"))
-                                            .build()
-                                            .execute(new StringCallback() {
-                                                @Override
-                                                public void onError(Call call, Exception e) {
-                                                    loadView.setVisibility(View.GONE);
-                                                    ShowToastTime.showTextToast(e.toString());
-                                                }
-
-                                                @Override
-                                                public void onResponse(String response) {
-                                                    loadView.setVisibility(View.GONE);
-                                                    System.out.println(response);
-
-                                                }
-                                            });
-                                }else{
-                                    loadView.setVisibility(View.GONE);
-                                    ShowToastTime.showTextToast(options.getMessage());
-                                }
-
-                            }
-                        });
+//                OkHttpUtils.postString()
+//                        .url(MyApplication.baseUrl+"api/Print")
+//                        .content(x)
+//                        .mediaType(MediaType.parse("application/json; charset=utf-8"))
+//                        .build()
+//                        .execute(new StringCallback() {
+//                            @Override
+//                            public void onError(Call call, Exception e) {
+//                                ShowToastTime.showTextToast(e.toString());
+//                                loadView.setVisibility(View.GONE);
+//                            }
+//
+//                            @Override
+//                            public void onResponse(String response) {
+//
+//                                ConfigureOptions options = gson.fromJson(response, ConfigureOptions.class);
+//
+//                                if(options.getCode()==200){
+//                                   //入库
+//                                    OkHttpUtils.postString()
+//                                            .url(MyApplication.baseUrl+"api/Production/Store")
+//                                            .content(wareHouse)
+//                                            .mediaType(MediaType.parse("application/json; charset=utf-8"))
+//                                            .build()
+//                                            .execute(new StringCallback() {
+//                                                @Override
+//                                                public void onError(Call call, Exception e) {
+//                                                    loadView.setVisibility(View.GONE);
+//                                                    ShowToastTime.showTextToast(e.toString());
+//                                                }
+//
+//                                                @Override
+//                                                public void onResponse(String response) {
+//                                                    loadView.setVisibility(View.GONE);
+//                                                    ConfigureOptions options = gson.fromJson(response, ConfigureOptions.class);
+//                                                    if(options.getCode()==200){
+//                                                        ShowToastTime.showTextToast("入库成功");
+//                                                        finish();
+//                                                    }else{
+//                                                        ShowToastTime.showTextToast(options.getMessage());
+//                                                    }
+//                                                }
+//                                            });
+//                                }else{
+//                                    loadView.setVisibility(View.GONE);
+//                                    ShowToastTime.showTextToast(options.getMessage());
+//                                }
+//
+//                            }
+//                        });
             }
         });
 
@@ -213,7 +235,7 @@ public class WareActivity extends AppCompatActivity {
             info.setSourceBillNo(unit.getDatas().getSourceBillNo());
             info.setId(getMyUUID());
             info.setUnitId(unitsBean.getId());
-            info.setNumber(1);
+            info.setNumber((int) unitsBean.getUnitScaler());
             info.setGoodNumbers(unitsBean.getGoodNumber());
             info.setSacler((int) unitsBean.getUnitScaler());
             info.setUnitName(unitsBean.getUnitName());
@@ -250,7 +272,7 @@ public class WareActivity extends AppCompatActivity {
                     packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
                     packageInfoBean.setId(getMyUUID());
                     packageInfoBean.setUnitId(unitsBean.getId());
-                    packageInfoBean.setNumber(1);
+                    packageInfoBean.setNumber((int) unitsBean.getUnitScaler());
                     packageInfoBean.setGoodNumbers(unitsBean.getGoodNumber());
                     packageInfoBean.setSacler((int) unitsBean.getUnitScaler());
                     packageInfoBean.setUnitName(unitsBean.getUnitName());
@@ -275,11 +297,20 @@ public class WareActivity extends AppCompatActivity {
         List<PrintUnit.DatasBean.UnitsBean> units = unit.getDatas().getUnits();
         if (info == null) {
             PrintUnit.DatasBean.UnitsBean unitsBean = null;
+            PrintUnit.DatasBean.UnitsBean subUnitsBean=null;
+            PrintUnit.DatasBean.UnitsBean lastUnitsBean=null;
+            int totalPackages=1;
             for (int i = 0; i < units.size(); i++) {
                 if (units.get(i).getLevel() == units.size() - 1) {
                     unitsBean = units.get(i);
-                    break;
                 }
+                if (units.get(i).getLevel() == units.size() - 2) {
+                    subUnitsBean = units.get(i);
+                }
+                if (units.get(i).getLevel() == 0) {
+                    lastUnitsBean = units.get(i);
+                }
+                totalPackages = totalPackages * (int) units.get(i).getUnitScaler();
             }
             info = new WarePrint.PackageInfoBean();
             info.setMark(unitsBean.getUnitName() + "-" + g);
@@ -293,12 +324,13 @@ public class WareActivity extends AppCompatActivity {
             info.setSourceBillNo(unit.getDatas().getSourceBillNo());
             info.setId(getMyUUID());
             info.setUnitId(unitsBean.getId());
-            info.setNumber(1);
+            info.setNumber((int)unitsBean.getUnitScaler());
             info.setGoodNumbers(unitsBean.getGoodNumber());
             info.setSacler((int) unitsBean.getUnitScaler());
             info.setUnitName(unitsBean.getUnitName());
             info.setIsLeaf(unitsBean.isIsLeaf());
             info.setLevel(unitsBean.getLevel());
+            info.setDescription((int) unitsBean.getUnitScaler()+subUnitsBean.getUnitName()+"("+totalPackages+lastUnitsBean.getUnitName()+")");
             if (!info.isIsLeaf()) {
                 scanRecur(info, 1);
             }
@@ -307,10 +339,18 @@ public class WareActivity extends AppCompatActivity {
                 if (info.getLevel() != 1) {//不是倒数第二等级
                     for (int i = 1; i <= info.getSacler(); i++) {
                         PrintUnit.DatasBean.UnitsBean unitsBean = null;
+                        PrintUnit.DatasBean.UnitsBean lastUnitsBean=null;
                         for (int q = 0; q < units.size(); q++) {
                             if (units.get(q).getLevel() == info.getLevel()) {
                                 unitsBean = units.get(q);
                                 break;
+                            }
+                        }
+                        int totalPackages=1;
+
+                        for(int q = 0; q < units.size(); q++){
+                            if(units.get(q).getLevel() != unitsBean.getLevel()){ //除了相等换算率
+                                totalPackages = totalPackages * (int) units.get(q).getUnitScaler();
                             }
                         }
                         for (int q = 0; q < units.size(); q++) {
@@ -319,6 +359,13 @@ public class WareActivity extends AppCompatActivity {
                                 break;
                             }
                         }
+                        for (int q = 0; q < units.size(); q++) {
+                            if(units.get(q).getLevel() == 0){
+                                lastUnitsBean= units.get(q);
+                            }
+                        }
+
+
                         WarePrint.PackageInfoBean packageInfoBean = new WarePrint.PackageInfoBean();
                         packageInfoBean.setMark(info.getMark() + unitsBean.getUnitName() + "-" + i);
 
@@ -331,12 +378,13 @@ public class WareActivity extends AppCompatActivity {
                         packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
                         packageInfoBean.setId(getMyUUID());
                         packageInfoBean.setUnitId(unitsBean.getId());
-                        packageInfoBean.setNumber(1);
+                        info.setNumber((int)unitsBean.getUnitScaler());
                         packageInfoBean.setGoodNumbers(unitsBean.getGoodNumber());
                         packageInfoBean.setSacler((int) unitsBean.getUnitScaler());
                         packageInfoBean.setUnitName(unitsBean.getUnitName());
                         packageInfoBean.setLevel(unitsBean.getLevel());
                         packageInfoBean.setIsLeaf(unitsBean.isIsLeaf());
+                        packageInfoBean.setDescription("("+totalPackages+lastUnitsBean.getUnitName()+")");
                         if (info.getChild() == null) {
                             ArrayList<WarePrint.PackageInfoBean> wp = new ArrayList<>();
                             info.setChild(wp);
@@ -375,7 +423,7 @@ public class WareActivity extends AppCompatActivity {
             info.setSourceBillNo(unit.getDatas().getSourceBillNo());
             info.setId(getMyUUID());
             info.setUnitId(unitsBean.getId());
-            info.setNumber(1);
+            info.setNumber((int) unitsBean.getUnitScaler());
             info.setGoodNumbers(unitsBean.getGoodNumber());
             info.setSacler((int) unitsBean.getUnitScaler());
             info.setUnitName(unitsBean.getUnitName());
@@ -412,7 +460,7 @@ public class WareActivity extends AppCompatActivity {
                     packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
                     packageInfoBean.setId(getMyUUID());
                     packageInfoBean.setUnitId(unitsBean.getId());
-                    packageInfoBean.setNumber(1);
+                    packageInfoBean.setNumber((int) unitsBean.getUnitScaler());
                     packageInfoBean.setGoodNumbers(unitsBean.getGoodNumber());
                     packageInfoBean.setSacler((int) unitsBean.getUnitScaler());
                     packageInfoBean.setUnitName(unitsBean.getUnitName());
@@ -433,18 +481,29 @@ public class WareActivity extends AppCompatActivity {
     }
 
     //尾箱扫码处理方式
-    private WarePrint.PackageInfoBean ScanTailBox(WarePrint.PackageInfoBean info, int g) {
+    private WarePrint.PackageInfoBean ScanTailBox(WarePrint.PackageInfoBean info, int g,int number,int branch,int maxUnitNumber) {
         List<PrintUnit.DatasBean.UnitsBean> units = unit.getDatas().getUnits();
+
         if (info == null) {
             PrintUnit.DatasBean.UnitsBean unitsBean = null;
+            PrintUnit.DatasBean.UnitsBean lastUnitsBean=null;
+            PrintUnit.DatasBean.UnitsBean  subUnitsBean=null;
+            int totalPackages=1;
             for (int i = 0; i < units.size(); i++) {
                 if (units.get(i).getLevel() == units.size() - 1) {
                     unitsBean = units.get(i);
-                    break;
                 }
+                if (units.get(i).getLevel() == units.size() - 2) {
+                    subUnitsBean = units.get(i);
+                }
+                if (units.get(i).getLevel() == 0) {
+                    lastUnitsBean = units.get(i);
+                }
+                totalPackages = totalPackages * (int) units.get(i).getUnitScaler();
             }
+
             info = new WarePrint.PackageInfoBean();
-            info.setMark("尾箱");
+            info.setMark(unitsBean.getUnitName()+"-"+maxUnitNumber);
             info.setTail(true);
             info.setPname(unitsBean.getPName());
             info.setBatchCode(unit.getDatas().getBatchNo());
@@ -455,30 +514,50 @@ public class WareActivity extends AppCompatActivity {
             info.setSourceBillNo(unit.getDatas().getSourceBillNo());
             info.setId(getMyUUID());
             info.setUnitId(unitsBean.getId());
-            info.setNumber(1);
+            info.setNumber((int) unitsBean.getUnitScaler());
             info.setGoodNumbers(unitsBean.getGoodNumber());
             info.setSacler((int) unitsBean.getUnitScaler());
             info.setUnitName(unitsBean.getUnitName());
             info.setIsLeaf(unitsBean.isIsLeaf());
             info.setLevel(unitsBean.getLevel());
+            if(branch>0){
+                info.setDescription((g+1)+subUnitsBean.getUnitName()+"("+number+lastUnitsBean.getUnitName()+")");
+            }else{
+                info.setDescription(g+subUnitsBean.getUnitName()+"("+number+lastUnitsBean.getUnitName()+")");
+            }
+
             if (!info.isIsLeaf()) {
-                ScanTailBox(info, g);
+                ScanTailBox(info, g,number,branch,0);
             }
         } else {
             if (!info.isIsLeaf()) {
                 if (info.getLevel() != 1) {
                     for (int i = 1; i <= g; i++) {
                         PrintUnit.DatasBean.UnitsBean unitsBean = null;
+                        PrintUnit.DatasBean.UnitsBean subUnitsBean=null;
+                        PrintUnit.DatasBean.UnitsBean lastUnitsBean=null;
                         for (int q = 0; q < units.size(); q++) {
                             if (units.get(q).getLevel() == info.getLevel()) {
                                 unitsBean = units.get(q);
                                 break;
                             }
                         }
+                        int totalPackages=1;
+
+                        for(int q = 0; q < units.size(); q++){
+                            if(units.get(q).getLevel() != unitsBean.getLevel()){ //除了相等换算率
+                                totalPackages = totalPackages * (int) units.get(q).getUnitScaler();
+                            }
+                        }
                         for (int q = 0; q < units.size(); q++) {
                             if (units.get(q).getLevel() == unitsBean.getLevel() - 1) {
                                 unitsBean = units.get(q);
                                 break;
+                            }
+                        }
+                        for (int q = 0; q < units.size(); q++) {
+                            if(units.get(q).getLevel() == 0){
+                                lastUnitsBean= units.get(q);
                             }
                         }
                         WarePrint.PackageInfoBean packageInfoBean = new WarePrint.PackageInfoBean();
@@ -493,19 +572,20 @@ public class WareActivity extends AppCompatActivity {
                         packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
                         packageInfoBean.setId(getMyUUID());
                         packageInfoBean.setUnitId(unitsBean.getId());
-                        packageInfoBean.setNumber(1);
+                        packageInfoBean.setNumber((int) unitsBean.getUnitScaler());
                         packageInfoBean.setGoodNumbers(unitsBean.getGoodNumber());
                         packageInfoBean.setSacler((int) unitsBean.getUnitScaler());
                         packageInfoBean.setUnitName(unitsBean.getUnitName());
                         packageInfoBean.setLevel(unitsBean.getLevel());
                         packageInfoBean.setIsLeaf(unitsBean.isIsLeaf());
+                        packageInfoBean.setDescription("("+totalPackages+lastUnitsBean.getUnitName()+")");
                         if (info.getChild() == null) {
                             ArrayList<WarePrint.PackageInfoBean> wp = new ArrayList<>();
                             info.setChild(wp);
                         }
                         info.getChild().add(packageInfoBean);
                         if (!packageInfoBean.isIsLeaf()) {
-                            ScanTailBox(packageInfoBean, packageInfoBean.getSacler());
+                            ScanTailBox(packageInfoBean, packageInfoBean.getSacler(),1,0,0);
                         }
                     }
                 }
@@ -513,32 +593,101 @@ public class WareActivity extends AppCompatActivity {
         }
         return info;
     }
+    //入库最小单位
+    private WarePrint.PackageInfoBean smallUnit(int maxUnitNumber,int unitNumber,PrintUnit.DatasBean.UnitsBean unitsBean, int SmallestUnit) {
+        List<PrintUnit.DatasBean.UnitsBean> units = unit.getDatas().getUnits();
+        PrintUnit.DatasBean.UnitsBean packageUnit=null;
+        PrintUnit.DatasBean.UnitsBean maxUnitsBean = null;
+        for (int i = 0; i < units.size(); i++) {
+            if(units.get(i).getLevel()==unitsBean.getLevel()+1){
+                packageUnit=units.get(i);
+            }
+            if(units.get(i).getLevel()==units.size()-1){
+                maxUnitsBean=units.get(i);
+            }
+        }
+        WarePrint.PackageInfoBean packageInfoBean = new WarePrint.PackageInfoBean();
 
-    private ArrayList<WarePrint.PackageInfoBean> smallUnit(PrintUnit.DatasBean.UnitsBean unitsBean, int SmallestUnit) {
+        packageInfoBean.setMark(maxUnitsBean.getUnitName()+"-"+maxUnitNumber+packageUnit.getUnitName()+"-"+(unitNumber+1));
+
+        packageInfoBean.setPname(packageUnit.getPName());
+        packageInfoBean.setBatchCode(unit.getDatas().getBatchNo());
+        packageInfoBean.setGoodName(unit.getDatas().getProductName());
+        packageInfoBean.setModelCode(unit.getDatas().getModelCode());
+        packageInfoBean.setStoreId(unit.getDatas().getStoreId());
+        packageInfoBean.setWorkPalceId(unit.getDatas().getWorkPalceId());
+        packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
+        packageInfoBean.setId(getMyUUID());
+        packageInfoBean.setUnitId(unitsBean.getId());
+        packageInfoBean.setNumber(SmallestUnit);
+        packageInfoBean.setGoodNumbers(packageUnit.getGoodNumber());
+        packageInfoBean.setSacler((int) packageUnit.getUnitScaler());
+        packageInfoBean.setUnitName(packageUnit.getUnitName());
+        packageInfoBean.setLevel(packageUnit.getLevel());
+        packageInfoBean.setIsLeaf(packageUnit.isIsLeaf());
+        packageInfoBean.setDescription("("+SmallestUnit+unitsBean.getUnitName()+")");
+
         ArrayList<WarePrint.PackageInfoBean> wp = new ArrayList<>();
         for (int z = 1; z <= SmallestUnit; z++) {
-            WarePrint.PackageInfoBean packageInfoBean = new WarePrint.PackageInfoBean();
-            packageInfoBean.setMark("尾箱" + unitsBean.getUnitName() + "-" + z);
+            WarePrint.PackageInfoBean packageInfoBean1 = new WarePrint.PackageInfoBean();
+            packageInfoBean1.setMark("尾箱" + unitsBean.getUnitName() + "-" + z);
 
-            packageInfoBean.setPname(unitsBean.getPName());
-            packageInfoBean.setBatchCode(unit.getDatas().getBatchNo());
-            packageInfoBean.setGoodName(unit.getDatas().getProductName());
-            packageInfoBean.setModelCode(unit.getDatas().getModelCode());
-            packageInfoBean.setStoreId(unit.getDatas().getStoreId());
-            packageInfoBean.setWorkPalceId(unit.getDatas().getWorkPalceId());
-            packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
-            packageInfoBean.setId(getMyUUID());
-            packageInfoBean.setUnitId(unitsBean.getId());
-            packageInfoBean.setNumber(1);
-            packageInfoBean.setGoodNumbers(unitsBean.getGoodNumber());
-            packageInfoBean.setSacler((int) unitsBean.getUnitScaler());
-            packageInfoBean.setUnitName(unitsBean.getUnitName());
-            packageInfoBean.setLevel(unitsBean.getLevel());
-            packageInfoBean.setIsLeaf(unitsBean.isIsLeaf());
-            wp.add(packageInfoBean);
+            packageInfoBean1.setPname(unitsBean.getPName());
+            packageInfoBean1.setBatchCode(unit.getDatas().getBatchNo());
+            packageInfoBean1.setGoodName(unit.getDatas().getProductName());
+            packageInfoBean1.setModelCode(unit.getDatas().getModelCode());
+            packageInfoBean1.setStoreId(unit.getDatas().getStoreId());
+            packageInfoBean1.setWorkPalceId(unit.getDatas().getWorkPalceId());
+            packageInfoBean1.setSourceBillNo(unit.getDatas().getSourceBillNo());
+            packageInfoBean1.setId(getMyUUID());
+            packageInfoBean1.setUnitId(unitsBean.getId());
+            packageInfoBean1.setNumber(1);
+            packageInfoBean1.setGoodNumbers(unitsBean.getGoodNumber());
+            packageInfoBean1.setSacler((int) unitsBean.getUnitScaler());
+            packageInfoBean1.setUnitName(unitsBean.getUnitName());
+            packageInfoBean1.setLevel(unitsBean.getLevel());
+            packageInfoBean1.setIsLeaf(unitsBean.isIsLeaf());
+            wp.add(packageInfoBean1);
         }
-        return wp;
+        packageInfoBean.setChild(wp);
+        return packageInfoBean;
+    }
 
+    //打印最小单位
+    private WarePrint.PackageInfoBean printSmallUnit(int maxUnitNumber,int unitNumber,PrintUnit.DatasBean.UnitsBean unitsBean, int SmallestUnit) {
+        List<PrintUnit.DatasBean.UnitsBean> units = unit.getDatas().getUnits();
+        PrintUnit.DatasBean.UnitsBean packageUnit=null;
+        PrintUnit.DatasBean.UnitsBean maxUnitsBean = null;
+        for (int i = 0; i < units.size(); i++) {
+            if(units.get(i).getLevel()==unitsBean.getLevel()+1){
+                packageUnit=units.get(i);
+            }
+            if(units.get(i).getLevel()==units.size()-1){
+                maxUnitsBean=units.get(i);
+            }
+        }
+        WarePrint.PackageInfoBean packageInfoBean = new WarePrint.PackageInfoBean();
+
+        packageInfoBean.setMark(maxUnitsBean.getUnitName()+"-"+maxUnitNumber+packageUnit.getUnitName()+"-"+(unitNumber+1));
+
+        packageInfoBean.setPname(packageUnit.getPName());
+        packageInfoBean.setBatchCode(unit.getDatas().getBatchNo());
+        packageInfoBean.setGoodName(unit.getDatas().getProductName());
+        packageInfoBean.setModelCode(unit.getDatas().getModelCode());
+        packageInfoBean.setStoreId(unit.getDatas().getStoreId());
+        packageInfoBean.setWorkPalceId(unit.getDatas().getWorkPalceId());
+        packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
+        packageInfoBean.setId(getMyUUID());
+        packageInfoBean.setUnitId(unitsBean.getId());
+        packageInfoBean.setNumber(SmallestUnit);
+        packageInfoBean.setGoodNumbers(packageUnit.getGoodNumber());
+        packageInfoBean.setSacler((int) packageUnit.getUnitScaler());
+        packageInfoBean.setUnitName(packageUnit.getUnitName());
+        packageInfoBean.setLevel(packageUnit.getLevel());
+        packageInfoBean.setIsLeaf(packageUnit.isIsLeaf());
+        packageInfoBean.setDescription("("+SmallestUnit+unitsBean.getUnitName()+")");
+
+        return packageInfoBean;
     }
 
     private String getMyUUID() {
