@@ -108,41 +108,46 @@ public class WareActivity extends AppCompatActivity {
                 }
                 //剩余循环次数
                 if (Remaining != 0) {
+      ;
                     //生成尾箱数据
                     int magR = Remaining / RemainingMag;
                     int SmallestUnit = Remaining % RemainingMag;
                     WarePrint.PackageInfoBean packageInfoBean2 = null;
-                    if(SmallestUnit>0){
-                        mag=mag+1;
-                    }
+                    mag=mag+1;
                     //尾箱
                     WarePrint.PackageInfoBean infoBean = ScanTailBox(packageInfoBean2, magR,Remaining,SmallestUnit,mag);
+                    list.add(infoBean);
                     //生成类似尾盒的数据
-                    WarePrint.PackageInfoBean packageInfoBean = printSmallUnit(mag, magR, unitsBean, SmallestUnit);
-                    if(infoBean.getChild()==null){
-                        ArrayList< WarePrint.PackageInfoBean> arrayList=new ArrayList<>();
-                        arrayList.add(packageInfoBean);
-                        infoBean.setChild(arrayList);
-                    }else{
-                        infoBean.getChild().add(packageInfoBean);
+                    if(SmallestUnit>0){
+                        WarePrint.PackageInfoBean packageInfoBean = printSmallUnit(mag, magR, unitsBean, SmallestUnit);
+                        if(infoBean.getChild()==null){
+                            ArrayList< WarePrint.PackageInfoBean> arrayList=new ArrayList<>();
+                            arrayList.add(packageInfoBean);
+                            infoBean.setChild(arrayList);
+                        }else{
+                            infoBean.getChild().add(packageInfoBean);
+                        }
                     }
+
 
 
                     WarePrint.PackageInfoBean packageInfoBean3 = null;
                     WarePrint.PackageInfoBean infoBean3 = TailBox(packageInfoBean3, magR);
-                    list.add(infoBean);
 
                     wareHousing.add(infoBean3);
                     //生成剩余最小单位包装的个数
-                    WarePrint.PackageInfoBean packageInfoBeans = smallUnit(mag, magR, unitsBean, SmallestUnit);
+                    if(SmallestUnit>0){
+                        WarePrint.PackageInfoBean packageInfoBeans = smallUnit(mag, magR, unitsBean, SmallestUnit);
 
-                    if(infoBean3.getChild()!=null){
-                        infoBean3.getChild().add(packageInfoBeans);
-                    }else{
-                        ArrayList< WarePrint.PackageInfoBean> arrayList=new ArrayList<>();
-                        arrayList.add(packageInfoBeans);
-                        infoBean3.setChild(arrayList);
+                        if(infoBean3.getChild()!=null){
+                            infoBean3.getChild().add(packageInfoBeans);
+                        }else{
+                            ArrayList< WarePrint.PackageInfoBean> arrayList=new ArrayList<>();
+                            arrayList.add(packageInfoBeans);
+                            infoBean3.setChild(arrayList);
+                        }
                     }
+
                 }
                 WarehousingBean bean=new WarehousingBean();
                 bean.setPackages(wareHousing);
@@ -153,59 +158,59 @@ public class WareActivity extends AppCompatActivity {
                 //入库标签
                 wareHouse = new Gson().toJson(bean);
 
-                FileUtils.writeFile(wareHouse,FileUtils.getExternalStoragePath(),true);
-                System.out.println(FileUtils.getExternalStoragePath());
+//                FileUtils.writeFile(x,FileUtils.getExternalStoragePath(),true);
+//                System.out.println(FileUtils.getExternalStoragePath());
                 //打印条码
-//                OkHttpUtils.postString()
-//                        .url(MyApplication.baseUrl+"api/Print")
-//                        .content(x)
-//                        .mediaType(MediaType.parse("application/json; charset=utf-8"))
-//                        .build()
-//                        .execute(new StringCallback() {
-//                            @Override
-//                            public void onError(Call call, Exception e) {
-//                                ShowToastTime.showTextToast(e.toString());
-//                                loadView.setVisibility(View.GONE);
-//                            }
-//
-//                            @Override
-//                            public void onResponse(String response) {
-//
-//                                ConfigureOptions options = gson.fromJson(response, ConfigureOptions.class);
-//
-//                                if(options.getCode()==200){
-//                                   //入库
-//                                    OkHttpUtils.postString()
-//                                            .url(MyApplication.baseUrl+"api/Production/Store")
-//                                            .content(wareHouse)
-//                                            .mediaType(MediaType.parse("application/json; charset=utf-8"))
-//                                            .build()
-//                                            .execute(new StringCallback() {
-//                                                @Override
-//                                                public void onError(Call call, Exception e) {
-//                                                    loadView.setVisibility(View.GONE);
-//                                                    ShowToastTime.showTextToast(e.toString());
-//                                                }
-//
-//                                                @Override
-//                                                public void onResponse(String response) {
-//                                                    loadView.setVisibility(View.GONE);
-//                                                    ConfigureOptions options = gson.fromJson(response, ConfigureOptions.class);
-//                                                    if(options.getCode()==200){
-//                                                        ShowToastTime.showTextToast("入库成功");
-//                                                        finish();
-//                                                    }else{
-//                                                        ShowToastTime.showTextToast(options.getMessage());
-//                                                    }
-//                                                }
-//                                            });
-//                                }else{
-//                                    loadView.setVisibility(View.GONE);
-//                                    ShowToastTime.showTextToast(options.getMessage());
-//                                }
-//
-//                            }
-//                        });
+                OkHttpUtils.postString()
+                        .url(MyApplication.baseUrl+"api/Print")
+                        .content(x)
+                        .mediaType(MediaType.parse("application/json; charset=utf-8"))
+                        .build()
+                        .execute(new StringCallback() {
+                            @Override
+                            public void onError(Call call, Exception e) {
+                                ShowToastTime.showTextToast(e.toString());
+                                loadView.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onResponse(String response) {
+
+                                ConfigureOptions options = gson.fromJson(response, ConfigureOptions.class);
+
+                                if(options.getCode()==200){
+                                   //入库
+                                    OkHttpUtils.postString()
+                                            .url(MyApplication.baseUrl+"api/Production/Store")
+                                            .content(wareHouse)
+                                            .mediaType(MediaType.parse("application/json; charset=utf-8"))
+                                            .build()
+                                            .execute(new StringCallback() {
+                                                @Override
+                                                public void onError(Call call, Exception e) {
+                                                    loadView.setVisibility(View.GONE);
+                                                    ShowToastTime.showTextToast(e.toString());
+                                                }
+
+                                                @Override
+                                                public void onResponse(String response) {
+                                                    loadView.setVisibility(View.GONE);
+                                                    ConfigureOptions options = gson.fromJson(response, ConfigureOptions.class);
+                                                    if(options.getCode()==200){
+                                                        ShowToastTime.showTextToast("入库成功");
+                                                        finish();
+                                                    }else{
+                                                        ShowToastTime.showTextToast(options.getMessage());
+                                                    }
+                                                }
+                                            });
+                                }else{
+                                    loadView.setVisibility(View.GONE);
+                                    ShowToastTime.showTextToast(options.getMessage());
+                                }
+
+                            }
+                        });
             }
         });
 

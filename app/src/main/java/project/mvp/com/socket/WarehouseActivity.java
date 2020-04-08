@@ -144,8 +144,6 @@ public class WarehouseActivity extends AppCompatActivity implements AdapterView.
                 fragmentTransaction.commit();
             }
         });
-
-
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
