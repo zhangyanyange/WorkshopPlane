@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.zhy.http.okhttp.OkHttpUtils;
@@ -26,12 +27,14 @@ import butterknife.ButterKnife;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import project.mvp.com.socket.adapter.LabelDetailAdapter;
+import project.mvp.com.socket.adapter.MakeLabelDetailAdapter;
 import project.mvp.com.socket.application.MyApplication;
 import project.mvp.com.socket.model.ConfigureOptions;
 import project.mvp.com.socket.model.LabelDetail;
+import project.mvp.com.socket.model.MakeLabelDetail;
 import project.mvp.com.socket.utils.ShowToastTime;
 
-public class SearchLabelDetailActivity extends AppCompatActivity {
+public class SearchMakeLabelDetailActivity extends AppCompatActivity {
 
     @Bind(R.id.tb_main)
     Toolbar tbMain;
@@ -49,23 +52,22 @@ public class SearchLabelDetailActivity extends AppCompatActivity {
     TextView textView;
     @Bind(R.id.loadView)
     RelativeLayout loadView;
-    private int machineId;
-    private String orderNo;
-    private String brand;
+    private String ID;
     private Gson gson;
-    private List<LabelDetail.DatasBean> datas;
-    private LabelDetailAdapter adapter;
+    private List<MakeLabelDetail.DatasBean> datas;
+    private MakeLabelDetailAdapter adapter;
+    private String printerName;
+    private ArrayList<MakeLabelDetail.DatasBean> list;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_label_detail);
         ButterKnife.bind(this);
-
+        list = new ArrayList<>();
         Intent intent = getIntent();
-        machineId = intent.getIntExtra("machineId", -1);
-        orderNo = intent.getStringExtra("orderNo");
-        brand = intent.getStringExtra("brand");
+        ID = intent.getStringExtra("ID");
+        printerName = intent.getStringExtra("printerName");
         pulltoRefresh.setLayoutManager(new LinearLayoutManager(this));
         pulltoRefresh.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
         gson = new Gson();
@@ -82,10 +84,10 @@ public class SearchLabelDetailActivity extends AppCompatActivity {
                 if (s.equals("")) {
                     ShowToastTime.showTextToast("请输入包装名");
                 }
-                loadView.setVisibility(View.VISIBLE);
+                loadView.setVisibility(View.VISIBLE);;
                 OkHttpUtils
                         .get()
-                        .url(MyApplication.baseUrl+"api/Production/RePrint/" + machineId + "?machineid=" + machineId + "&pageindex=1&pagesize=100000&billno=" + orderNo + "&brand=" + brand + "&packagename=" + s)
+                        .url("http://192.168.12.247:8085/api/Stock/Pakcages?id="+ID+"&key="+s)
                         .build()
                         .execute(new StringCallback() {
                             @Override
@@ -96,40 +98,41 @@ public class SearchLabelDetailActivity extends AppCompatActivity {
 
                             @Override
                             public void onResponse(String response) {
-
+                                textView.setText("补打中");
                                 loadView.setVisibility(View.GONE);
-                                LabelDetail labelDetail = gson.fromJson(response, LabelDetail.class);
+                                MakeLabelDetail labelDetail = gson.fromJson(response, MakeLabelDetail.class);
+                                for(MakeLabelDetail.DatasBean item : labelDetail.getDatas()){
+                                    item.setPname(printerName);
+                                }
                                 if (labelDetail.getCode() == 200) {
                                     datas = labelDetail.getDatas();
-                                    adapter = new LabelDetailAdapter(SearchLabelDetailActivity.this, datas);
+                                    adapter = new MakeLabelDetailAdapter(SearchMakeLabelDetailActivity.this, datas);
                                     pulltoRefresh.setAdapter(adapter);
-                                    adapter.setClickListener(new LabelDetailAdapter.onItemClickListener() {
+                                    adapter.setClickListener(new MakeLabelDetailAdapter.onItemClickListener() {
                                         @Override
                                         public void clickItem(int position) {
-
-                                            textView.setText("补打中");
+                                            list.clear();
+                                            list.add(datas.get(position));
+                                            System.out.println(list);
                                             loadView.setVisibility(View.VISIBLE);
-                                            OkHttpUtils
-                                                    .postString()
-                                                    .url(MyApplication.baseUrl+"api/Production/RePrint")
-                                                    .content(gson.toJson(datas.get(position)))
+                                            OkHttpUtils.postString()
+                                                    .url(MyApplication.baseUrl+"api/Print")
+                                                    .content(gson.toJson(list))
                                                     .mediaType(MediaType.parse("application/json; charset=utf-8"))
                                                     .build()
                                                     .execute(new StringCallback() {
                                                         @Override
                                                         public void onError(Call call, Exception e) {
                                                             loadView.setVisibility(View.GONE);
-                                                            ShowToastTime.showTextToast(e.getMessage());
+                                                            Toast.makeText(SearchMakeLabelDetailActivity.this,e.toString(),Toast.LENGTH_SHORT).show();
                                                         }
 
                                                         @Override
                                                         public void onResponse(String response) {
                                                             loadView.setVisibility(View.GONE);
-                                                            ConfigureOptions configureOptions = gson.fromJson(response, ConfigureOptions.class);
-                                                            if (configureOptions.getCode() == 200) {
-                                                                ShowToastTime.showTextToast("补打成功");
-                                                            } else {
-                                                                ShowToastTime.showTextToast("补打失败");
+                                                            ConfigureOptions options = gson.fromJson(response, ConfigureOptions.class);
+                                                            if(options.getCode()==200){
+                                                                Toast.makeText(SearchMakeLabelDetailActivity.this,"标签补打成功",Toast.LENGTH_SHORT).show();
                                                             }
                                                         }
                                                     });
@@ -139,7 +142,6 @@ public class SearchLabelDetailActivity extends AppCompatActivity {
                                     ShowToastTime.showTextToast(labelDetail.getMessage());
                                 }
                             }
-
                         });
             }
         });

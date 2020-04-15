@@ -132,7 +132,7 @@ public class WareActivity extends AppCompatActivity {
 
 
                     WarePrint.PackageInfoBean packageInfoBean3 = null;
-                    WarePrint.PackageInfoBean infoBean3 = TailBox(packageInfoBean3, magR);
+                    WarePrint.PackageInfoBean infoBean3 = TailBox(packageInfoBean3, magR,Remaining,SmallestUnit,mag);
 
                     wareHousing.add(infoBean3);
                     //生成剩余最小单位包装的个数
@@ -158,7 +158,7 @@ public class WareActivity extends AppCompatActivity {
                 //入库标签
                 wareHouse = new Gson().toJson(bean);
 
-//                FileUtils.writeFile(x,FileUtils.getExternalStoragePath(),true);
+//                boolean b = FileUtils.writeFile( wareHouse, FileUtils.getExternalStoragePath(), true);
 //                System.out.println(FileUtils.getExternalStoragePath());
                 //打印条码
                 OkHttpUtils.postString()
@@ -222,11 +222,20 @@ public class WareActivity extends AppCompatActivity {
         List<PrintUnit.DatasBean.UnitsBean> units = unit.getDatas().getUnits();
         if (info == null) {
             PrintUnit.DatasBean.UnitsBean unitsBean = null;
+            PrintUnit.DatasBean.UnitsBean subUnitsBean=null;
+            PrintUnit.DatasBean.UnitsBean lastUnitsBean=null;
+            int totalPackages=1;
             for (int i = 0; i < units.size(); i++) {
                 if (units.get(i).getLevel() == units.size() - 1) {
                     unitsBean = units.get(i);
-                    break;
                 }
+                if (units.get(i).getLevel() == units.size() - 2) {
+                    subUnitsBean = units.get(i);
+                }
+                if (units.get(i).getLevel() == 0) {
+                    lastUnitsBean = units.get(i);
+                }
+                totalPackages = totalPackages * (int) units.get(i).getUnitScaler();
             }
             info = new WarePrint.PackageInfoBean();
             info.setMark(unitsBean.getUnitName() + "-" + g);
@@ -240,56 +249,73 @@ public class WareActivity extends AppCompatActivity {
             info.setSourceBillNo(unit.getDatas().getSourceBillNo());
             info.setId(getMyUUID());
             info.setUnitId(unitsBean.getId());
-            info.setNumber((int) unitsBean.getUnitScaler());
+            info.setNumber(totalPackages);
             info.setGoodNumbers(unitsBean.getGoodNumber());
             info.setSacler((int) unitsBean.getUnitScaler());
             info.setUnitName(unitsBean.getUnitName());
             info.setIsLeaf(unitsBean.isIsLeaf());
             info.setLevel(unitsBean.getLevel());
+            info.setDescription((int) unitsBean.getUnitScaler()+subUnitsBean.getUnitName()+"("+totalPackages+lastUnitsBean.getUnitName()+")");
             if (!info.isIsLeaf()) {
                 recur(info, 1);
             }
         } else {
             if (!info.isIsLeaf()) {
-                for (int i = 1; i <= info.getSacler(); i++) {
-                    PrintUnit.DatasBean.UnitsBean unitsBean = null;
-                    for (int q = 0; q < units.size(); q++) {
-                        if (units.get(q).getLevel() == info.getLevel()) {
-                            unitsBean = units.get(q);
-                            break;
+                if (info.getLevel() != 1) {//不是倒数第二等级
+                    for (int i = 1; i <= info.getSacler(); i++) {
+                        PrintUnit.DatasBean.UnitsBean unitsBean = null;
+                        PrintUnit.DatasBean.UnitsBean lastUnitsBean=null;
+                        for (int q = 0; q < units.size(); q++) {
+                            if (units.get(q).getLevel() == info.getLevel()) {
+                                unitsBean = units.get(q);
+                                break;
+                            }
                         }
-                    }
-                    for (int q = 0; q < units.size(); q++) {
-                        if (units.get(q).getLevel() == unitsBean.getLevel() - 1) {
-                            unitsBean = units.get(q);
-                            break;
-                        }
-                    }
-                    WarePrint.PackageInfoBean packageInfoBean = new WarePrint.PackageInfoBean();
-                    packageInfoBean.setMark(info.getMark() + unitsBean.getUnitName() + "-" + i);
+                        int totalPackages=1;
 
-                    packageInfoBean.setPname(unitsBean.getPName());
-                    packageInfoBean.setBatchCode(unit.getDatas().getBatchNo());
-                    packageInfoBean.setGoodName(unit.getDatas().getProductName());
-                    packageInfoBean.setModelCode(unit.getDatas().getModelCode());
-                    packageInfoBean.setStoreId(unit.getDatas().getStoreId());
-                    packageInfoBean.setWorkPalceId(unit.getDatas().getWorkPalceId());
-                    packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
-                    packageInfoBean.setId(getMyUUID());
-                    packageInfoBean.setUnitId(unitsBean.getId());
-                    packageInfoBean.setNumber((int) unitsBean.getUnitScaler());
-                    packageInfoBean.setGoodNumbers(unitsBean.getGoodNumber());
-                    packageInfoBean.setSacler((int) unitsBean.getUnitScaler());
-                    packageInfoBean.setUnitName(unitsBean.getUnitName());
-                    packageInfoBean.setLevel(unitsBean.getLevel());
-                    packageInfoBean.setIsLeaf(unitsBean.isIsLeaf());
-                    if (info.getChild() == null) {
-                        ArrayList<WarePrint.PackageInfoBean> wp = new ArrayList<>();
-                        info.setChild(wp);
-                    }
-                    info.getChild().add(packageInfoBean);
-                    if (!packageInfoBean.isIsLeaf()) {
-                        recur(packageInfoBean, 1);
+                        for(int q = 0; q < units.size(); q++){
+                            if(units.get(q).getLevel() != unitsBean.getLevel()){ //除了相等换算率
+                                totalPackages = totalPackages * (int) units.get(q).getUnitScaler();
+                            }
+                        }
+                        for (int q = 0; q < units.size(); q++) {
+                            if (units.get(q).getLevel() == unitsBean.getLevel() - 1) {
+                                unitsBean = units.get(q);
+                                break;
+                            }
+                        }
+                        for (int q = 0; q < units.size(); q++) {
+                            if(units.get(q).getLevel() == 0){
+                                lastUnitsBean= units.get(q);
+                            }
+                        }
+                        WarePrint.PackageInfoBean packageInfoBean = new WarePrint.PackageInfoBean();
+                        packageInfoBean.setMark(info.getMark() + unitsBean.getUnitName() + "-" + i);
+
+                        packageInfoBean.setPname(unitsBean.getPName());
+                        packageInfoBean.setBatchCode(unit.getDatas().getBatchNo());
+                        packageInfoBean.setGoodName(unit.getDatas().getProductName());
+                        packageInfoBean.setModelCode(unit.getDatas().getModelCode());
+                        packageInfoBean.setStoreId(unit.getDatas().getStoreId());
+                        packageInfoBean.setWorkPalceId(unit.getDatas().getWorkPalceId());
+                        packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
+                        packageInfoBean.setId(getMyUUID());
+                        packageInfoBean.setUnitId(unitsBean.getId());
+                        packageInfoBean.setNumber(totalPackages);
+                        packageInfoBean.setGoodNumbers(unitsBean.getGoodNumber());
+                        packageInfoBean.setSacler((int) unitsBean.getUnitScaler());
+                        packageInfoBean.setUnitName(unitsBean.getUnitName());
+                        packageInfoBean.setLevel(unitsBean.getLevel());
+                        packageInfoBean.setIsLeaf(unitsBean.isIsLeaf());
+                        packageInfoBean.setDescription("("+totalPackages+lastUnitsBean.getUnitName()+")");
+                        if (info.getChild() == null) {
+                            ArrayList<WarePrint.PackageInfoBean> wp = new ArrayList<>();
+                            info.setChild(wp);
+                        }
+                        info.getChild().add(packageInfoBean);
+                        if (!packageInfoBean.isIsLeaf()) {
+                            recur(packageInfoBean, 1);
+                        }
                     }
                 }
             }
@@ -406,18 +432,28 @@ public class WareActivity extends AppCompatActivity {
     }
 
     //尾箱入库处理方式
-    private WarePrint.PackageInfoBean TailBox(WarePrint.PackageInfoBean info, int g) {
+    private WarePrint.PackageInfoBean TailBox(WarePrint.PackageInfoBean info, int g,int number,int branch,int maxUnitNumber) {
         List<PrintUnit.DatasBean.UnitsBean> units = unit.getDatas().getUnits();
+
         if (info == null) {
             PrintUnit.DatasBean.UnitsBean unitsBean = null;
+            PrintUnit.DatasBean.UnitsBean lastUnitsBean=null;
+            PrintUnit.DatasBean.UnitsBean  subUnitsBean=null;
+            int totalPackages=1;
             for (int i = 0; i < units.size(); i++) {
                 if (units.get(i).getLevel() == units.size() - 1) {
                     unitsBean = units.get(i);
-                    break;
                 }
+                if (units.get(i).getLevel() == units.size() - 2) {
+                    subUnitsBean = units.get(i);
+                }
+                if (units.get(i).getLevel() == 0) {
+                    lastUnitsBean = units.get(i);
+                }
+                totalPackages = totalPackages * (int) units.get(i).getUnitScaler();
             }
             info = new WarePrint.PackageInfoBean();
-            info.setMark("尾箱");
+            info.setMark(unitsBean.getUnitName()+"-"+maxUnitNumber);
             info.setTail(true);
             info.setPname(unitsBean.getPName());
             info.setBatchCode(unit.getDatas().getBatchNo());
@@ -428,56 +464,78 @@ public class WareActivity extends AppCompatActivity {
             info.setSourceBillNo(unit.getDatas().getSourceBillNo());
             info.setId(getMyUUID());
             info.setUnitId(unitsBean.getId());
-            info.setNumber((int) unitsBean.getUnitScaler());
+            info.setNumber(number);
             info.setGoodNumbers(unitsBean.getGoodNumber());
             info.setSacler((int) unitsBean.getUnitScaler());
             info.setUnitName(unitsBean.getUnitName());
             info.setIsLeaf(unitsBean.isIsLeaf());
             info.setLevel(unitsBean.getLevel());
+            if(branch>0){
+                info.setDescription((g+1)+subUnitsBean.getUnitName()+"("+number+lastUnitsBean.getUnitName()+")");
+            }else{
+                info.setDescription(g+subUnitsBean.getUnitName()+"("+number+lastUnitsBean.getUnitName()+")");
+            }
             if (!info.isIsLeaf()) {
-                TailBox(info, g);
+                TailBox(info, g,number,branch,0);
             }
         } else {
             if (!info.isIsLeaf()) {
-                for (int i = 1; i <= g; i++) {
-                    PrintUnit.DatasBean.UnitsBean unitsBean = null;
-                    for (int q = 0; q < units.size(); q++) {
-                        if (units.get(q).getLevel() == info.getLevel()) {
-                            unitsBean = units.get(q);
-                            break;
+                if (info.getLevel() != 1) {
+                    for (int i = 1; i <= g; i++) {
+                        PrintUnit.DatasBean.UnitsBean unitsBean = null;
+                        PrintUnit.DatasBean.UnitsBean subUnitsBean=null;
+                        PrintUnit.DatasBean.UnitsBean lastUnitsBean=null;
+                        for (int q = 0; q < units.size(); q++) {
+                            if (units.get(q).getLevel() == info.getLevel()) {
+                                unitsBean = units.get(q);
+                                break;
+                            }
                         }
-                    }
-                    for (int q = 0; q < units.size(); q++) {
-                        if (units.get(q).getLevel() == unitsBean.getLevel() - 1) {
-                            unitsBean = units.get(q);
-                            break;
-                        }
-                    }
-                    WarePrint.PackageInfoBean packageInfoBean = new WarePrint.PackageInfoBean();
-                    packageInfoBean.setMark(info.getMark() + unitsBean.getUnitName() + "-" + i);
+                        int totalPackages=1;
 
-                    packageInfoBean.setPname(unitsBean.getPName());
-                    packageInfoBean.setBatchCode(unit.getDatas().getBatchNo());
-                    packageInfoBean.setGoodName(unit.getDatas().getProductName());
-                    packageInfoBean.setModelCode(unit.getDatas().getModelCode());
-                    packageInfoBean.setStoreId(unit.getDatas().getStoreId());
-                    packageInfoBean.setWorkPalceId(unit.getDatas().getWorkPalceId());
-                    packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
-                    packageInfoBean.setId(getMyUUID());
-                    packageInfoBean.setUnitId(unitsBean.getId());
-                    packageInfoBean.setNumber((int) unitsBean.getUnitScaler());
-                    packageInfoBean.setGoodNumbers(unitsBean.getGoodNumber());
-                    packageInfoBean.setSacler((int) unitsBean.getUnitScaler());
-                    packageInfoBean.setUnitName(unitsBean.getUnitName());
-                    packageInfoBean.setLevel(unitsBean.getLevel());
-                    packageInfoBean.setIsLeaf(unitsBean.isIsLeaf());
-                    if (info.getChild() == null) {
-                        ArrayList<WarePrint.PackageInfoBean> wp = new ArrayList<>();
-                        info.setChild(wp);
-                    }
-                    info.getChild().add(packageInfoBean);
-                    if (!packageInfoBean.isIsLeaf()) {
-                        TailBox(packageInfoBean, packageInfoBean.getSacler());
+                        for(int q = 0; q < units.size(); q++){
+                            if(units.get(q).getLevel() != unitsBean.getLevel()){ //除了相等换算率
+                                totalPackages = totalPackages * (int) units.get(q).getUnitScaler();
+                            }
+                        }
+                        for (int q = 0; q < units.size(); q++) {
+                            if (units.get(q).getLevel() == unitsBean.getLevel() - 1) {
+                                unitsBean = units.get(q);
+                                break;
+                            }
+                        }
+                        for (int q = 0; q < units.size(); q++) {
+                            if(units.get(q).getLevel() == 0){
+                                lastUnitsBean= units.get(q);
+                            }
+                        }
+                        WarePrint.PackageInfoBean packageInfoBean = new WarePrint.PackageInfoBean();
+                        packageInfoBean.setMark(info.getMark() + unitsBean.getUnitName() + "-" + i);
+
+                        packageInfoBean.setPname(unitsBean.getPName());
+                        packageInfoBean.setBatchCode(unit.getDatas().getBatchNo());
+                        packageInfoBean.setGoodName(unit.getDatas().getProductName());
+                        packageInfoBean.setModelCode(unit.getDatas().getModelCode());
+                        packageInfoBean.setStoreId(unit.getDatas().getStoreId());
+                        packageInfoBean.setWorkPalceId(unit.getDatas().getWorkPalceId());
+                        packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
+                        packageInfoBean.setId(getMyUUID());
+                        packageInfoBean.setUnitId(unitsBean.getId());
+                        packageInfoBean.setNumber(totalPackages);
+                        packageInfoBean.setGoodNumbers(unitsBean.getGoodNumber());
+                        packageInfoBean.setSacler((int) unitsBean.getUnitScaler());
+                        packageInfoBean.setUnitName(unitsBean.getUnitName());
+                        packageInfoBean.setLevel(unitsBean.getLevel());
+                        packageInfoBean.setIsLeaf(unitsBean.isIsLeaf());
+                        packageInfoBean.setDescription("("+totalPackages+lastUnitsBean.getUnitName()+")");
+                        if (info.getChild() == null) {
+                            ArrayList<WarePrint.PackageInfoBean> wp = new ArrayList<>();
+                            info.setChild(wp);
+                        }
+                        info.getChild().add(packageInfoBean);
+                        if (!packageInfoBean.isIsLeaf()) {
+                            TailBox(packageInfoBean, packageInfoBean.getSacler(),1,0,0);
+                        }
                     }
                 }
             }
@@ -488,7 +546,6 @@ public class WareActivity extends AppCompatActivity {
     //尾箱扫码处理方式
     private WarePrint.PackageInfoBean ScanTailBox(WarePrint.PackageInfoBean info, int g,int number,int branch,int maxUnitNumber) {
         List<PrintUnit.DatasBean.UnitsBean> units = unit.getDatas().getUnits();
-
         if (info == null) {
             PrintUnit.DatasBean.UnitsBean unitsBean = null;
             PrintUnit.DatasBean.UnitsBean lastUnitsBean=null;
@@ -632,29 +689,29 @@ public class WareActivity extends AppCompatActivity {
         packageInfoBean.setIsLeaf(packageUnit.isIsLeaf());
         packageInfoBean.setDescription("("+SmallestUnit+unitsBean.getUnitName()+")");
 
-        ArrayList<WarePrint.PackageInfoBean> wp = new ArrayList<>();
-        for (int z = 1; z <= SmallestUnit; z++) {
-            WarePrint.PackageInfoBean packageInfoBean1 = new WarePrint.PackageInfoBean();
-            packageInfoBean1.setMark("尾箱" + unitsBean.getUnitName() + "-" + z);
-
-            packageInfoBean1.setPname(unitsBean.getPName());
-            packageInfoBean1.setBatchCode(unit.getDatas().getBatchNo());
-            packageInfoBean1.setGoodName(unit.getDatas().getProductName());
-            packageInfoBean1.setModelCode(unit.getDatas().getModelCode());
-            packageInfoBean1.setStoreId(unit.getDatas().getStoreId());
-            packageInfoBean1.setWorkPalceId(unit.getDatas().getWorkPalceId());
-            packageInfoBean1.setSourceBillNo(unit.getDatas().getSourceBillNo());
-            packageInfoBean1.setId(getMyUUID());
-            packageInfoBean1.setUnitId(unitsBean.getId());
-            packageInfoBean1.setNumber(1);
-            packageInfoBean1.setGoodNumbers(unitsBean.getGoodNumber());
-            packageInfoBean1.setSacler((int) unitsBean.getUnitScaler());
-            packageInfoBean1.setUnitName(unitsBean.getUnitName());
-            packageInfoBean1.setLevel(unitsBean.getLevel());
-            packageInfoBean1.setIsLeaf(unitsBean.isIsLeaf());
-            wp.add(packageInfoBean1);
-        }
-        packageInfoBean.setChild(wp);
+//        ArrayList<WarePrint.PackageInfoBean> wp = new ArrayList<>();
+//        for (int z = 1; z <= SmallestUnit; z++) {
+//            WarePrint.PackageInfoBean packageInfoBean1 = new WarePrint.PackageInfoBean();
+//            packageInfoBean1.setMark("尾箱" + unitsBean.getUnitName() + "-" + z);
+//
+//            packageInfoBean1.setPname(unitsBean.getPName());
+//            packageInfoBean1.setBatchCode(unit.getDatas().getBatchNo());
+//            packageInfoBean1.setGoodName(unit.getDatas().getProductName());
+//            packageInfoBean1.setModelCode(unit.getDatas().getModelCode());
+//            packageInfoBean1.setStoreId(unit.getDatas().getStoreId());
+//            packageInfoBean1.setWorkPalceId(unit.getDatas().getWorkPalceId());
+//            packageInfoBean1.setSourceBillNo(unit.getDatas().getSourceBillNo());
+//            packageInfoBean1.setId(getMyUUID());
+//            packageInfoBean1.setUnitId(unitsBean.getId());
+//            packageInfoBean1.setNumber(1);
+//            packageInfoBean1.setGoodNumbers(unitsBean.getGoodNumber());
+//            packageInfoBean1.setSacler((int) unitsBean.getUnitScaler());
+//            packageInfoBean1.setUnitName(unitsBean.getUnitName());
+//            packageInfoBean1.setLevel(unitsBean.getLevel());
+//            packageInfoBean1.setIsLeaf(unitsBean.isIsLeaf());
+//            wp.add(packageInfoBean1);
+//        }
+//        packageInfoBean.setChild(wp);
         return packageInfoBean;
     }
 

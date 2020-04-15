@@ -56,7 +56,7 @@ public class PreservationActivity extends AppCompatActivity {
     @Bind(R.id.baocun)
     Button baocun;
     @Bind(R.id.configure_name)
-    EditText configureName;
+    TextView configureName;
     @Bind(R.id.store_name)
     TextView storeName1;
     @Bind(R.id.store_place)
@@ -112,6 +112,7 @@ public class PreservationActivity extends AppCompatActivity {
         storePlace.setText(storePlaceName);
         storeName1.setText(storeName);
         workShop.setText(workshopName);
+        configureName.setText(productName1);
         String pack = "";
         String printer = "";
 
@@ -148,6 +149,7 @@ public class PreservationActivity extends AppCompatActivity {
         SimpleDateFormat dateFormat=new SimpleDateFormat("yyMMdd");
         String productNumber= "GP"+dateFormat.format(date)+"A";
         batchNumber.setText(productNumber);
+        configure.setRemark(productName1);
         configure.setBatchNo(productNumber);
         batchNumber.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -159,12 +161,6 @@ public class PreservationActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                String configureName1 = configureName.getText().toString();
-                if (configureName1.equals("")) {
-                    Toast.makeText(PreservationActivity.this, "请填写配置名称", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                configure.setRemark(configureName1);
                 loadView.setVisibility(View.VISIBLE);
                 OkHttpUtils.postString()
                         .url(MyApplication.baseUrl+"api/WorkBrenchConfig")

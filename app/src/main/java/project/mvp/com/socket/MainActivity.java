@@ -58,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
     RelativeLayout labelPath;
     @Bind(R.id.nonviewConfigura)
     RelativeLayout nonviewConfigura;
+    @Bind(R.id.label_path_make)
+    RelativeLayout labelPathMake;
 
     private Handler handler = new Handler() {
         public void handleMessage(Message msg) {
@@ -136,12 +138,21 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
+        //扫码标签补打
         labelPath.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, ConfigureActivity.class);
                 intent.putExtra("configure", 3);
+                startActivity(intent);
+            }
+        });
+        //非扫码标签补打
+        labelPathMake.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, ConfigureActivity.class);
+                intent.putExtra("configure",4);
                 startActivity(intent);
             }
         });
@@ -216,11 +227,11 @@ public class MainActivity extends AppCompatActivity {
 
         File file =
                 new File(Environment.getExternalStorageDirectory(), "jiaqi.apk");
-        if(file.exists()){
+        if (file.exists()) {
             System.out.println(file.length());
-            if(file.length()>0){
+            if (file.length() > 0) {
                 file.delete();
-                file=new File(Environment.getExternalStorageDirectory(), "jiaqi.apk");
+                file = new File(Environment.getExternalStorageDirectory(), "jiaqi.apk");
             }
         }
         request.setDestinationUri(Uri.fromFile(file));

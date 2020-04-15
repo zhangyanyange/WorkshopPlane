@@ -29,6 +29,51 @@ public class FileUtils {
 	public static final String CACHE_DIR = "cache";
 	public static final String ICON_DIR = "icon";
 
+	public static final int FLAG_SUCCESS = 1;//创建成功
+	public static final int FLAG_EXISTS = 2;//已存在
+	public static final int FLAG_FAILED = 3;//创建失败
+
+
+	/**
+	 * 创建 单个 文件
+	 * @param filePath 待创建的文件路径
+	 * @return 结果码
+	 */
+	public static int CreateFile(String filePath) {
+		File file = new File(filePath);
+		if (file.exists()) {
+			return FLAG_EXISTS;
+		}
+		if (filePath.endsWith(File.separator)) {// 以 路径分隔符 结束，说明是文件夹
+			return FLAG_FAILED;
+		}
+
+		//判断父目录是否存在
+		if (!file.getParentFile().exists()) {
+			//父目录不存在 创建父目录
+			if (!file.getParentFile().mkdirs()) {
+				return FLAG_FAILED;
+			}
+		}
+
+		//创建目标文件
+		try {
+			if (file.createNewFile()) {//创建文件成功
+
+				return FLAG_SUCCESS;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+
+			return FLAG_FAILED;
+		}
+
+		return FLAG_FAILED;
+	}
+
+
+
+
 	/** 判断SD卡是否挂载 */
 	public static boolean isSDCardAvailable() {
 		if (Environment.MEDIA_MOUNTED.equals(Environment

@@ -142,7 +142,7 @@ public class PackingActivity extends AppCompatActivity {
                             });
                         }
                     });
-                } else {
+                } else if(mPacking.getCode() == 400){
                     finish();
                     Toast.makeText(PackingActivity.this, mPacking.getMessage(), Toast.LENGTH_LONG).show();
                     Intent intent1=new Intent(PackingActivity.this,AddUnitActivity.class);
@@ -150,6 +150,9 @@ public class PackingActivity extends AppCompatActivity {
                     intent1.putExtra("CompanyId",mCompanyId);
                     intent1.putExtra("ProductName",mProductName);
                     startActivity(intent1);
+                }else if(mPacking.getCode() == 404){
+                    finish();
+                    Toast.makeText(PackingActivity.this, mPacking.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
         });

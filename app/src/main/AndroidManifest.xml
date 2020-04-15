@@ -16,12 +16,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".WareActivity"></activity>
+        <activity android:name=".GetPrinterActivity"></activity>
+        <activity android:name=".MakeLabelPathActivity" />
+        <activity android:name=".WareActivity" />
         <activity android:name=".NonscanningActivity" />
         <activity android:name=".SearchLabelDetailActivity" />
         <activity android:name=".LabelDetailActivity" />
         <activity android:name=".LabelPathActivity" />
+        <activity android:name=".MakeLabelDetailActivity" />
         <activity android:name=".ReStockingActivity" />
+        <activity android:name=".SearchMakeLabelDetailActivity"/>
         <activity
             android:name=".MainActivity"
             android:label="嘉琪车间"
