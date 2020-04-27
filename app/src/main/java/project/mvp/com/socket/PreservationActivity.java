@@ -10,9 +10,10 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.zhy.http.okhttp.OkHttpUtils;
@@ -56,7 +57,7 @@ public class PreservationActivity extends AppCompatActivity {
     @Bind(R.id.baocun)
     Button baocun;
     @Bind(R.id.configure_name)
-    TextView configureName;
+    EditText configureName;
     @Bind(R.id.store_name)
     TextView storeName1;
     @Bind(R.id.store_place)
@@ -65,9 +66,15 @@ public class PreservationActivity extends AppCompatActivity {
     TextView workShop;
     @Bind(R.id.production_batch)
     TextView batchNumber;
+    @Bind(R.id.radio_scan)
+    RadioButton radioScan;
+    @Bind(R.id.radio_noscan)
+    RadioButton radioNoscan;
+    @Bind(R.id.rg_all)
+    RadioGroup rgAll;
     private Gson mGson;
-    int  mYear;
-    int  mMonth;
+    int mYear;
+    int mMonth;
     int mDay;
     private Configure configure;
 
@@ -145,11 +152,11 @@ public class PreservationActivity extends AppCompatActivity {
         configure.setStorePlaceId(storePlaceId);
         configure.setCompanyId(companyId);
         configure.setFworkShopId(workshopId);
-        Date date=new Date();//此时date为当前的时间
-        SimpleDateFormat dateFormat=new SimpleDateFormat("yyMMdd");
-        String productNumber= "GP"+dateFormat.format(date)+"A";
+        configure.setConfigType("手工");
+        Date date = new Date();//此时date为当前的时间
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMdd");
+        String productNumber = "GP" + dateFormat.format(date) + "A";
         batchNumber.setText(productNumber);
-        configure.setRemark(productName1);
         configure.setBatchNo(productNumber);
         batchNumber.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,13 +164,25 @@ public class PreservationActivity extends AppCompatActivity {
                 new DatePickerDialog(PreservationActivity.this, onDateSetListener, mYear, mMonth, mDay).show();
             }
         });
+        rgAll.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+               RadioButton checkRadioButton = (RadioButton)rgAll.findViewById(i);
+                configure.setConfigType(checkRadioButton.getText().toString());
+            }
+        });
         baocun.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(configureName.getText().toString()==""){
+                    ShowToastTime.showTextToast("请填写配置名称");
+                    return;
+                }
+                configure.setRemark(configureName.getText().toString());
 
                 loadView.setVisibility(View.VISIBLE);
                 OkHttpUtils.postString()
-                        .url(MyApplication.baseUrl+"api/WorkBrenchConfig")
+                        .url(MyApplication.baseUrl + "api/WorkBrenchConfig")
                         .content(new Gson().toJson(configure))
                         .mediaType(MediaType.parse("application/json; charset=utf-8"))
                         .build()
@@ -198,7 +217,7 @@ public class PreservationActivity extends AppCompatActivity {
 
         @Override
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            year=Integer.parseInt(String.valueOf(year).substring(2));
+            year = Integer.parseInt(String.valueOf(year).substring(2));
             mYear = year;
             mMonth = monthOfYear;
             mDay = dayOfMonth;
@@ -222,7 +241,7 @@ public class PreservationActivity extends AppCompatActivity {
                 }
 
             }
-            days="GP"+days+"A";
+            days = "GP" + days + "A";
             batchNumber.setText(days);
             configure.setBatchNo(days);
         }

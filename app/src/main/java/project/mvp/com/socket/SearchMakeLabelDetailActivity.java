@@ -87,7 +87,7 @@ public class SearchMakeLabelDetailActivity extends AppCompatActivity {
                 loadView.setVisibility(View.VISIBLE);;
                 OkHttpUtils
                         .get()
-                        .url("http://192.168.12.247:8085/api/Stock/Pakcages?id="+ID+"&key="+s)
+                        .url(MyApplication.baseUrl+"api/Stock/Pakcages?id="+ID+"&key="+s)
                         .build()
                         .execute(new StringCallback() {
                             @Override
@@ -113,7 +113,6 @@ public class SearchMakeLabelDetailActivity extends AppCompatActivity {
                                         public void clickItem(int position) {
                                             list.clear();
                                             list.add(datas.get(position));
-                                            System.out.println(list);
                                             loadView.setVisibility(View.VISIBLE);
                                             OkHttpUtils.postString()
                                                     .url(MyApplication.baseUrl+"api/Print")

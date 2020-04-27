@@ -68,5 +68,5 @@ public class MyApplication extends Application {
         OkHttpUtils.getInstance(okHttpClient);//持久化存储cookie
     }
 
-    public static String baseUrl="https://workshopapi.gopas.com.cn/";//http://192.168.12.247:8085/
+    public static String baseUrl="https://workshopapi.gopas.com.cn/";//https://workshopapi.gopas.com.cn/
 }

@@ -66,7 +66,7 @@ public class NonscanningActivity extends AppCompatActivity {
 
     private void getList() {
         loadView.setVisibility(View.VISIBLE);
-        OkHttpUtils.get().url(MyApplication.baseUrl+"api/WorkBrenchConfig?index=1&size=10000").build().execute(new StringCallback() {
+        OkHttpUtils.get().url(MyApplication.baseUrl+"api/WorkBrenchConfigs/手工?index=1&size=10000").build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e) {
                 ShowToastTime.showTextToast(e.toString());

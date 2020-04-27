@@ -66,15 +66,17 @@ public class ViewConfiguraActivity extends AppCompatActivity {
 
     private void getList() {
         loadView.setVisibility(View.VISIBLE);
-        OkHttpUtils.get().url(MyApplication.baseUrl+"api/WorkBrenchConfig?index=1&size=10000").build().execute(new StringCallback() {
+        OkHttpUtils.get().url(MyApplication.baseUrl+"api/WorkBrenchConfigs/自动?index=1&size=10000").build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e) {
+                System.out.println(e.toString());
                 ShowToastTime.showTextToast(e.toString());
                 loadView.setVisibility(View.GONE);
             }
 
             @Override
             public void onResponse(String response) {
+                System.out.println(response);
                 loadView.setVisibility(View.GONE);
                 mWorkConfig = mGson.fromJson(response, ViewWorkConfig.class);
                 mAdapter = new WorkConfigAdapter(ViewConfiguraActivity.this, mWorkConfig.getDatas());

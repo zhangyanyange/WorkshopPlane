@@ -38,18 +38,13 @@ public class GetPrinterActivity extends AppCompatActivity {
     @Bind(R.id.tb_main)
     Toolbar tbMain;
     private Printer mPrinter;
-    private String mTargetIp;
-    private int mMachineId;
-    private String mDetail;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_get_printer);
         ButterKnife.bind(this);
         Intent intent = getIntent();
-        mTargetIp = intent.getStringExtra("targetIp");
-        mDetail = intent.getStringExtra("detail");
-        mMachineId = intent.getIntExtra("machineId",-1);
+
         idRecyclerview.setLayoutManager(new LinearLayoutManager(this));
         textView.setText("获取打印机");
         loadView.setVisibility(View.VISIBLE);
@@ -61,8 +56,7 @@ public class GetPrinterActivity extends AppCompatActivity {
                 finish();
             }
         });
-        tbMain.setTitle(mDetail);
-        OkHttpUtils.get().url(MyApplication.baseUrl+"api/Print?targetip=" + mTargetIp).build().execute(new StringCallback() {
+        OkHttpUtils.get().url(MyApplication.baseUrl+"api/Print?targetip=").build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e) {
                 loadView.setVisibility(View.INVISIBLE);
@@ -89,8 +83,6 @@ public class GetPrinterActivity extends AppCompatActivity {
             public void checkboxEvent(int position, boolean isCheck) {
                 if (isCheck) {
                     Intent intent1 = new Intent(GetPrinterActivity.this, MakeLabelPathActivity.class);
-                    intent1.putExtra("targetIp",mTargetIp);
-                    intent1.putExtra("machineId",mMachineId);
                     intent1.putExtra("printerName",mPrinter.getDatas().get(position));
                     startActivity(intent1);
                 }

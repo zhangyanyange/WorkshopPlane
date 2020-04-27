@@ -33,6 +33,15 @@ public class Configure {
     private int companyId;
     private int fworkShopId;
     private String batchNo;
+    private String configType;
+
+    public String getConfigType() {
+        return configType;
+    }
+
+    public void setConfigType(String configType) {
+        this.configType = configType;
+    }
 
     public String getBatchNo() {
         return batchNo;

@@ -56,7 +56,6 @@ public class MakeLabelDetailActivity extends AppCompatActivity {
     private String ID;
     private List<MakeLabelDetail.DatasBean> datas;
     private MakeLabelDetailAdapter adapter;
-    private int machineId;
     private String printerName;
     private ArrayList<MakeLabelDetail.DatasBean> list;
 
@@ -69,7 +68,6 @@ public class MakeLabelDetailActivity extends AppCompatActivity {
         Intent intent = getIntent();
 
         ID = intent.getStringExtra("ID");
-        machineId = intent.getIntExtra("machineId",-1);
         printerName = intent.getStringExtra("printerName");
         list = new ArrayList<>();
         //搜索
@@ -97,7 +95,7 @@ public class MakeLabelDetailActivity extends AppCompatActivity {
 
         OkHttpUtils
                 .get()//获取重打产品标签数据
-                .url("http://192.168.12.247:8085/api/Stock/Pakcages?id="+ID)
+                .url(MyApplication.baseUrl+"api/Stock/Pakcages?id="+ID)
                 .build()
                 .execute(new StringCallback() {
                     @Override
@@ -111,7 +109,7 @@ public class MakeLabelDetailActivity extends AppCompatActivity {
                         textView.setText("补打中");
                         loadView.setVisibility(View.GONE);
                         MakeLabelDetail labelDetail = gson.fromJson(response, MakeLabelDetail.class);
-                        System.out.println(response);
+
                         for(MakeLabelDetail.DatasBean item : labelDetail.getDatas()){
                             item.setPname(printerName);
                         }
@@ -124,7 +122,6 @@ public class MakeLabelDetailActivity extends AppCompatActivity {
                                 public void clickItem(int position) {
                                     list.clear();
                                     list.add(datas.get(position));
-                                    System.out.println(list);
                                     loadView.setVisibility(View.VISIBLE);
                                     OkHttpUtils.postString()
                                             .url(MyApplication.baseUrl+"api/Print")

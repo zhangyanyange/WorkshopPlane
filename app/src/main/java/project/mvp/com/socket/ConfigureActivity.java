@@ -123,13 +123,6 @@ public class ConfigureActivity extends AppCompatActivity {
                                     intent.putExtra("detail",mMachine.getDatas().get(position).getRemark());
                                     intent.putExtra("machineId",mMachine.getDatas().get(position).getId());
                                     startActivity(intent);
-                                }else if(configure==4){
-                                    //获取打印机
-                                    Intent intent=new Intent(ConfigureActivity.this,GetPrinterActivity.class);
-                                    intent.putExtra("machineId",mMachine.getDatas().get(position).getId());
-                                    intent.putExtra("detail",mMachine.getDatas().get(position).getRemark());
-                                    intent.putExtra("targetIp", mMachine.getDatas().get(position).getMachineIp());
-                                    startActivity(intent);
                                 }
                             } else {
                                 Toast.makeText(ConfigureActivity.this, online.getMessage(), Toast.LENGTH_LONG).show();

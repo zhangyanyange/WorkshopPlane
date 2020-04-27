@@ -53,7 +53,6 @@ public class MakeLabelPathActivity extends AppCompatActivity {
         });
         final Intent intent = getIntent();
 
-        final int machineId = intent.getIntExtra("machineId",-1);
         printerName = intent.getStringExtra("printerName");
         idRecyclerview.setLayoutManager(new LinearLayoutManager(this));
         idRecyclerview.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
@@ -61,7 +60,7 @@ public class MakeLabelPathActivity extends AppCompatActivity {
         loadView.setVisibility(View.VISIBLE);
         OkHttpUtils
                 .get()
-                .url("http://192.168.12.247:8085/api/Stock/InRecord?pageindex=1&pagesize=10000")
+                .url(MyApplication.baseUrl+"api/Stock/InRecord?pageindex=1&pagesize=10000")
                 .build()
                 .execute(new StringCallback() {
                     @Override
@@ -84,7 +83,6 @@ public class MakeLabelPathActivity extends AppCompatActivity {
                                     Intent intent1 = new Intent(MakeLabelPathActivity.this, MakeLabelDetailActivity.class);
                                     intent1.putExtra("printerName",printerName);
                                     intent1.putExtra("ID",order.getDatas().get(position).getId());
-                                    intent1.putExtra("machineId",machineId);
                                     startActivity(intent1);
                                 }
                             });

@@ -151,8 +151,7 @@ public class MainActivity extends AppCompatActivity {
         labelPathMake.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, ConfigureActivity.class);
-                intent.putExtra("configure",4);
+                Intent intent=new Intent(MainActivity.this,GetPrinterActivity.class);
                 startActivity(intent);
             }
         });

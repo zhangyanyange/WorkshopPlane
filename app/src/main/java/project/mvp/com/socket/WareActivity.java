@@ -108,7 +108,6 @@ public class WareActivity extends AppCompatActivity {
                 }
                 //剩余循环次数
                 if (Remaining != 0) {
-      ;
                     //生成尾箱数据
                     int magR = Remaining / RemainingMag;
                     int SmallestUnit = Remaining % RemainingMag;
@@ -154,63 +153,65 @@ public class WareActivity extends AppCompatActivity {
                 bean.setInStoreNumber(number);
                 bean.setBrenchId(productID);
                 //扫码标签
-                String x = new Gson().toJson(list);
+                final String x = new Gson().toJson(wareHousing);
                 //入库标签
                 wareHouse = new Gson().toJson(bean);
 
-//                boolean b = FileUtils.writeFile( wareHouse, FileUtils.getExternalStoragePath(), true);
+//                boolean b = FileUtils.writeFile(wareHouse , FileUtils.getExternalStoragePath(), true);
 //                System.out.println(FileUtils.getExternalStoragePath());
-                //打印条码
+                //入库
                 OkHttpUtils.postString()
-                        .url(MyApplication.baseUrl+"api/Print")
-                        .content(x)
+                        .url(MyApplication.baseUrl+"api/Production/Store")
+                        .content(wareHouse)
                         .mediaType(MediaType.parse("application/json; charset=utf-8"))
                         .build()
                         .execute(new StringCallback() {
                             @Override
                             public void onError(Call call, Exception e) {
-                                ShowToastTime.showTextToast(e.toString());
                                 loadView.setVisibility(View.GONE);
+                                ShowToastTime.showTextToast(e.toString());
                             }
 
                             @Override
                             public void onResponse(String response) {
 
                                 ConfigureOptions options = gson.fromJson(response, ConfigureOptions.class);
-
                                 if(options.getCode()==200){
-                                   //入库
+                                    //打印条码
                                     OkHttpUtils.postString()
-                                            .url(MyApplication.baseUrl+"api/Production/Store")
-                                            .content(wareHouse)
+                                            .url(MyApplication.baseUrl+"api/Print")
+                                            .content(x)
                                             .mediaType(MediaType.parse("application/json; charset=utf-8"))
                                             .build()
                                             .execute(new StringCallback() {
                                                 @Override
                                                 public void onError(Call call, Exception e) {
-                                                    loadView.setVisibility(View.GONE);
                                                     ShowToastTime.showTextToast(e.toString());
+                                                    loadView.setVisibility(View.GONE);
                                                 }
 
                                                 @Override
                                                 public void onResponse(String response) {
-                                                    loadView.setVisibility(View.GONE);
                                                     ConfigureOptions options = gson.fromJson(response, ConfigureOptions.class);
                                                     if(options.getCode()==200){
-                                                        ShowToastTime.showTextToast("入库成功");
+                                                        loadView.setVisibility(View.GONE);
+                                                        ShowToastTime.showTextToast("打印成功");
                                                         finish();
                                                     }else{
+                                                        loadView.setVisibility(View.GONE);
                                                         ShowToastTime.showTextToast(options.getMessage());
                                                     }
+
                                                 }
                                             });
+
                                 }else{
-                                    loadView.setVisibility(View.GONE);
                                     ShowToastTime.showTextToast(options.getMessage());
                                 }
-
                             }
                         });
+
+
             }
         });
 
@@ -355,7 +356,7 @@ public class WareActivity extends AppCompatActivity {
             info.setSourceBillNo(unit.getDatas().getSourceBillNo());
             info.setId(getMyUUID());
             info.setUnitId(unitsBean.getId());
-            info.setNumber((int)unitsBean.getUnitScaler());
+            info.setNumber(totalPackages);
             info.setGoodNumbers(unitsBean.getGoodNumber());
             info.setSacler((int) unitsBean.getUnitScaler());
             info.setUnitName(unitsBean.getUnitName());
@@ -409,7 +410,7 @@ public class WareActivity extends AppCompatActivity {
                         packageInfoBean.setSourceBillNo(unit.getDatas().getSourceBillNo());
                         packageInfoBean.setId(getMyUUID());
                         packageInfoBean.setUnitId(unitsBean.getId());
-                        info.setNumber((int)unitsBean.getUnitScaler());
+                        info.setNumber(totalPackages);
                         packageInfoBean.setGoodNumbers(unitsBean.getGoodNumber());
                         packageInfoBean.setSacler((int) unitsBean.getUnitScaler());
                         packageInfoBean.setUnitName(unitsBean.getUnitName());
